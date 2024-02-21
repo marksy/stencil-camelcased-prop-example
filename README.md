@@ -1,18 +1,71 @@
 # README
 
-This is a small repo to show an example of Stencil `4.7.0` and Jest `29.5.7` showing the following type/build failure. 
+This is a small repo to show an example of Stencil `4.12.3` showing the following type/build failure. 
 
-I upgraded my project (from StencilJS `4.2.x` & Jest `27.x`) to use Stencil `4.7.0` & Jest `29.5.7` (and associated types) and now when I run stencil build I get a Typescript error:
+When a composed component (a component that uses another component in the render function) uses a component that has a required prop that is camelCased (e.g., `@Prop() public dataTestid: string`), TypeScript expects the prop to be added to the component as camelCase.
 
-    TypeScript: node_modules/@stencil/core/testing/jest/jest-stencil-connector.d.ts:81:31
-           Could not find a declaration file for module '@jest/types/build/Config'.
-           '/Users/mark.chambers/Sites/timely/TimelyApp/Timely.UI/node_modules/@jest/types/build/Config.js' implicitly
-           has an 'any' type.If the '@jest/types' package actually exposes this module, try adding a new declaration
-           (.d.ts) file containing `declare module '@jest/types/build/Config';`
+### For example
 
-     L80:  coverageProvider: "v8" | "babel";
-     L81:  coverageReporters: import("@jest/types/build/Config").CoverageReporters;
-     L82:  coverageThreshold: {
+I have this simple TestComponent:
+```typescript jsx
+@Component({
+    tag: 'test-component',
+    styleUrl: 'test-component.css',
+    shadow: true,
+})
+export class TestComponent {
+  @Prop() public dataTestid!: string;
+
+  render() {
+    render(
+      <Host>
+        <div data-testid={this.dataTestid}>hi there!</div>
+      </Host>
+    )
+  }
+```
+
+And I have this composed component using the TestComponent:
+```typescript jsx
+@Component({
+    tag: 'composed-component',
+    styleUrl: 'composed-component.css',
+    shadow: true,
+})
+export class ComposedComponent {
+  @Prop() public name!: string;
+
+  render() {
+    render(
+      <Host>
+        {this.name}
+        <test-component data-testid="example"></test-component>
+      </Host>
+    )
+  }
+```
+
+However, TypeScript throws an error in the `ComposedComponent` saying:
+```
+Property '"dataTestid"' is missing in type
+           '{ "data-testid": string; }' but required in type 'TestComponent'.
+```
+
+If I change the `ComposedComponent` render function to use `dataTestid` TypeScript doesn't show the error, but the HTML is rendered out as `<test-component datatestid="example`:
+```typescript jsx
+ render() {
+    render(
+      <Host>
+        {this.name}
+        <test-component dataTestid="example"></test-component>
+      </Host>
+    )
+  }
+```
+
+I've also tried with non-data based prop names such as `@Prop() testId!: string` but the same thing happens.
+
+I've also tried to use a custom attribute `@Prop({ attribute: 'test-id'}) testId!: string` but the same thing happens.
 
 Discord message: https://discord.com/channels/520266681499779082/1170864699361996830/1170864699361996830
 
@@ -21,16 +74,10 @@ Discord message: https://discord.com/channels/520266681499779082/117086469936199
 1. yarn install
 2. yarn start (runs `stencil build --dev --watch --serve --port 2003`)
 
-## Notice
-
-- The script `yarn start` shows an error in the console as per the failure example above.
-
 ## Expect
 
-- The script `yarn start` should succeed.
+- TypeScript should succeed as I'm using the required prop as kebab-case.
 
 ## Notes
 
 - The script `yarn build` fails as above.
-- The script `yarn test` succeeds without error.
-- The script `yarn test:coverage` also succeeds without error.

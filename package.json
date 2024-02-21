@@ -13,11 +13,7 @@
     "react.js"
   ],
   "scripts": {
-    "start": "stencil build --dev --watch --serve --port 2003",
-    "build": "stencil build --ci",
-    "test": "stencil test --spec --e2e",
-    "test:watch": "yarn test --watch",
-    "test:coverage": "stencil test --spec --e2e --coverage --coverageDirectory ./coverage --coverageReporters=cobertura --coverageReporters=html --reporters=jest-junit --reporters=default"
+    "start": "stencil build --dev --watch --serve --port 2003"
   },
   "main": "dist-stencil/index.cjs.js",
   "module": "dist-stencil/index.js",
