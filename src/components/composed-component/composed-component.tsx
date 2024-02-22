@@ -10,7 +10,7 @@ export class ComposedComponent {
         return (
             <Host>
                 <p>Composed Component</p>
-                <test-component data-testid="example"></test-component>
+                <test-component dataTestid="example"></test-component>
             </Host>
         );
     }
